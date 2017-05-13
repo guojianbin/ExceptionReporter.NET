@@ -82,6 +82,9 @@ namespace ExceptionReporting.Core
 			return results;
 		}
 
+        /// <summary>
+        /// Disposes the managed resources.
+        /// </summary>
 		protected override void DisposeManagedResources()
 		{
 			_reportInfo.Dispose();
@@ -89,6 +92,9 @@ namespace ExceptionReporting.Core
 		}
 	}
 
+    /// <summary>
+    /// Exception report generator exception.
+    /// </summary>
 	internal class ExceptionReportGeneratorException : Exception
 	{
 		public ExceptionReportGeneratorException(string message) : base(message)

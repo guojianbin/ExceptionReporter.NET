@@ -71,7 +71,7 @@ namespace ExceptionReporting.Core
 		public string AppVersion { get; set; }
 
 		/// <summary>
-		/// Region information using <see cref="Application.CurrentCulture.DisplayName"/>
+		/// Region information
 		/// </summary>
 		public string RegionInfo { get; set; }
 
