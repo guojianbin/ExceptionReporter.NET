@@ -2,18 +2,21 @@ using System.Reflection;
 using ExceptionReporting.Core;
 using NUnit.Framework;
 
+#if __MonoCS__
+#else
 namespace ExceptionReporting.Tests
 {
-	[TestFixture]
-	public class AssemblyReferenceDigger_Tests
-	{
-		[Test]
-		public void TestName()
-		{
-			var digger = new AssemblyReferenceDigger(Assembly.Load("ExceptionReporter.WinForms"));
-			var references = digger.CreateReferencesString();
+    [TestFixture]
+    public class AssemblyReferenceDigger_Tests
+    {
+        [Test]
+        public void TestName()
+        {
+            var digger = new AssemblyReferenceDigger(Assembly.Load("ExceptionReporter.WinForms"));
+            var references = digger.CreateReferencesString();
 
-			Assert.That(references, Is.StringContaining("System.Windows.Forms, Version="));
-		}
-	}
+            Assert.That(references, Is.StringContaining("System.Windows.Forms, Version="));
+        }
+    }
 }
+#endif

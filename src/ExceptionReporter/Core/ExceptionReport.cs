@@ -18,6 +18,14 @@ namespace ExceptionReporting.Core
 		}
 
         /// <summary>
+        /// Is running mono.
+        /// </summary>
+        /// <returns><c>true</c>, if running mono <c>false</c> otherwise.</returns>
+        public static bool IsRunningMono() {
+            return System.Type.GetType("Mono.Runtime") != null;
+        }
+
+        /// <summary>
         /// Returns a <see cref="T:System.String"/> that represents the current <see cref="T:ExceptionReporting.Core.ExceptionReport"/>.
         /// </summary>
         /// <returns>A <see cref="T:System.String"/> that represents the current <see cref="T:ExceptionReporting.Core.ExceptionReport"/>.</returns>
