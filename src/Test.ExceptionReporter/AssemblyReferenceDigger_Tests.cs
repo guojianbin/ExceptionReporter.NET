@@ -2,8 +2,6 @@ using System.Reflection;
 using ExceptionReporting.Core;
 using NUnit.Framework;
 
-#if __MonoCS__
-#else
 namespace ExceptionReporting.Tests
 {
     [TestFixture]
@@ -19,4 +17,3 @@ namespace ExceptionReporting.Tests
         }
     }
 }
-#endif

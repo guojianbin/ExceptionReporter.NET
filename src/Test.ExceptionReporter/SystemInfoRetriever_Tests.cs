@@ -1,9 +1,8 @@
 using ExceptionReporting.SystemInfo;
 using NUnit.Framework;
 using System.Linq;
+using ExceptionReporting.Core;
 
-#if __MonoCS__
-#else
 namespace ExceptionReporting.Tests
 {
     /// <summary>
@@ -20,6 +19,10 @@ namespace ExceptionReporting.Tests
         public void CanRetrieve_SysInfo_For_CPU()
         {
             var sysInfoResult = _retriever.Retrieve(SysInfoQueries.Machine);
+            if (ExceptionReport.IsRunningMono()) {
+                Assert.That(sysInfoResult, Is.Null);
+                return;
+            };
 
             Assert.That(sysInfoResult.Nodes.Count, Is.EqualTo(1));      // at least 1 machine name
             Assert.That(sysInfoResult.ChildResults[0].Nodes.Count, Is.GreaterThan(0));
@@ -30,8 +33,12 @@ namespace ExceptionReporting.Tests
         public void CanRetrieve_SysInfo_For_OS()
         {
             var sysInfoResult = _retriever.Retrieve(SysInfoQueries.OperatingSystem);
+			if (ExceptionReport.IsRunningMono())
+			{
+				Assert.That(sysInfoResult, Is.Null);
+				return;
+			};
             Assert.That(sysInfoResult.Nodes[0], Is.StringContaining("Windows"));
         }
     }
 }
-#endif

@@ -9,9 +9,6 @@ using ExceptionReporting.SystemInfo;
 using NUnit.Framework;
 using Rhino.Mocks;
 
-#if __MonoCS__
-
-#else
 namespace ExceptionReporting.Tests
 {
     [TestFixture]
@@ -133,4 +130,3 @@ namespace ExceptionReporting.Tests
         }
     }
 }
-#endif
