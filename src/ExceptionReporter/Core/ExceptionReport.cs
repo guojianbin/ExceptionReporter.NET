@@ -17,13 +17,13 @@ namespace ExceptionReporting.Core
 			_reportString = stringBuilder;
 		}
 
+        private static bool _isRunningMono = System.Type.GetType("Mono.Runtime") != null;
+
         /// <summary>
         /// Is running mono.
         /// </summary>
         /// <returns><c>true</c>, if running mono <c>false</c> otherwise.</returns>
-        public static bool IsRunningMono() {
-            return System.Type.GetType("Mono.Runtime") != null;
-        }
+        public static bool IsRunningMono() { return _isRunningMono; }
 
         /// <summary>
         /// Returns a <see cref="T:System.String"/> that represents the current <see cref="T:ExceptionReporting.Core.ExceptionReport"/>.
