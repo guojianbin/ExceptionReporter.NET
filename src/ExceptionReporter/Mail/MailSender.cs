@@ -2,20 +2,20 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Net;
-using System.Net.Mail;
-using System.Text;
 using ExceptionReporting.Core;
 using ExceptionReporting.Extensions;
 using Ionic.Zip;
+using MailKit.Net.Smtp;
+using MailKit.Security;
+using MimeKit;
 using Win32Mapi;
 
 namespace ExceptionReporting.Mail
 {
 	class MailSender
 	{
-		private readonly ExceptionReportInfo _reportInfo;
-		private IEmailSendEvent _emailEvent;
+		readonly ExceptionReportInfo _reportInfo;
+		IEmailSendEvent _emailEvent;
 
 		internal MailSender(ExceptionReportInfo reportInfo)
 		{
@@ -24,44 +24,42 @@ namespace ExceptionReporting.Mail
 
 		/// <summary>
 		/// Send SMTP email, requires following ExceptionReportInfo properties to be set
-		/// SmtpPort, SmtpUseSsl, SmtpUsername, SmtpPassword, SmtpFromAddress, EmailReportAddress
+		/// SmtpPort, SmtpUseSsl, SmtpFromAddress, EmailReportAddress
+		/// Set SmtpUsername/Password if SMTP server supports authentication
 		/// </summary>
 		public void SendSmtp(string exceptionReport, IEmailSendEvent emailEvent)
 		{
 			_emailEvent = emailEvent;
-			var smtpClient = new SmtpClient(_reportInfo.SmtpServer)
+
+			var message = new MimeMessage
 			{
-				DeliveryMethod = SmtpDeliveryMethod.Network,
-				Port = _reportInfo.SmtpPort,
-				EnableSsl = _reportInfo.SmtpUseSsl,
-				UseDefaultCredentials = false,
-				Credentials = new NetworkCredential(_reportInfo.SmtpUsername, _reportInfo.SmtpPassword),
+				Subject = EmailSubject,
+				Body = new TextPart("plain") { 
+					Text = exceptionReport 
+				}
 			};
+			message.From.Add(new MailboxAddress(_reportInfo.SmtpFromAddress, _reportInfo.SmtpFromAddress));
+			message.To.Add(new MailboxAddress(_reportInfo.EmailReportAddress, _reportInfo.EmailReportAddress));
 
-			var mailMessage = new MailMessage(_reportInfo.SmtpFromAddress, _reportInfo.EmailReportAddress)
+			using (var client = new SmtpClient())
 			{
-				BodyEncoding = Encoding.UTF8,
-				SubjectEncoding = Encoding.UTF8,
-				Body = exceptionReport,
-				Subject = EmailSubject
-			};
+				client.Connect(_reportInfo.SmtpServer, _reportInfo.SmtpPort, _reportInfo.SmtpUseSsl ? SecureSocketOptions.SslOnConnect : SecureSocketOptions.None);
 
-			AttachFiles(new AttachAdapter(mailMessage));
+				if (!_reportInfo.SmtpUsername.IsEmpty())
+				{
+					client.Authenticate(_reportInfo.SmtpUsername, _reportInfo.SmtpPassword);
+				}
 
-			smtpClient.SendCompleted += SmtpClient_SendCompleted;
-			smtpClient.SendCompleted += (sender, e) => mailMessage.Dispose();
-			smtpClient.SendAsync(mailMessage, "Exception Report");
-		}
-
-		private void SmtpClient_SendCompleted(object sender, System.ComponentModel.AsyncCompletedEventArgs e)
-		{
-			if (e.Error != null)
-			{
-				_emailEvent.Completed(false);
-				_emailEvent.ShowError(e.Error.Message, e.Error);
-			}
-			else
-			{
+				try
+				{
+					client.Send(message);
+				} 
+				catch (Exception ex) 
+				{
+					_emailEvent.Completed(false);
+					_emailEvent.ShowError(ex.Message, ex);
+				}
+				client.Disconnect(true);
 				_emailEvent.Completed(true);
 			}
 		}

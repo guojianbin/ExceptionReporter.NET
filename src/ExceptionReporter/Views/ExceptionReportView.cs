@@ -5,6 +5,7 @@ using System.Drawing;
 using System.Reflection;
 using System.Windows.Forms;
 using ExceptionReporting.Core;
+using ExceptionReporting.Extensions;
 using ExceptionReporting.SystemInfo;
 
 #pragma warning disable 1591
@@ -89,7 +90,10 @@ namespace ExceptionReporting.Views
 			Text = reportInfo.TitleText;
 			txtUserExplanation.Font = new Font(txtUserExplanation.Font.FontFamily, reportInfo.UserExplanationFontSize);
 			lblContactCompany.Text = string.Format("If this problem persists, please contact {0} support.", reportInfo.CompanyName);
-			btnSimpleEmail.Text = string.Format("E-mail {0}", reportInfo.CompanyName);
+			if (!reportInfo.CompanyName.IsEmpty())
+			{
+				btnSimpleEmail.Text = string.Format("Email {0}", reportInfo.CompanyName);
+			}
 
 			if (reportInfo.TakeScreenshot)
 			{

@@ -92,6 +92,16 @@ Fixes:
     <Reference Include="SimpleMapi">
       <HintPath>..\..\packages\Simple-MAPI.NET.1.0.1\lib\net20\SimpleMapi.dll</HintPath>
     </Reference>
+    <Reference Include="BouncyCastle.Crypto">
+      <HintPath>..\..\packages\BouncyCastle.1.8.1\lib\BouncyCastle.Crypto.dll</HintPath>
+    </Reference>
+    <Reference Include="MimeKit">
+      <HintPath>..\..\packages\MimeKit.1.16.1\lib\net40\MimeKit.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Security" />
+    <Reference Include="MailKit">
+      <HintPath>..\..\packages\MailKit.1.16.1\lib\net40\MailKit.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Core\AssemblyReferenceDigger.cs" />

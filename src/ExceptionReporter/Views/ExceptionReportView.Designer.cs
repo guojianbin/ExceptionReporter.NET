@@ -634,6 +634,7 @@
             this.btnSimpleEmail.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
             this.btnSimpleEmail.Location = new System.Drawing.Point(255, 36);
             this.btnSimpleEmail.Name = "btnSimpleEmail";
+            this.btnSimpleEmail.Text = "Send Email";
             this.btnSimpleEmail.Size = new System.Drawing.Size(118, 32);
             this.btnSimpleEmail.TabIndex = 1;
             this.btnSimpleEmail.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
