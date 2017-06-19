@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using ExceptionReporting.Core;
 using ExceptionReporting.Extensions;
 using Ionic.Zip;
@@ -14,20 +15,20 @@ namespace ExceptionReporting.Mail
 {
 	class MailSender
 	{
-		readonly ExceptionReportInfo _reportInfo;
+		readonly ExceptionReportInfo _config;
 		IEmailSendEvent _emailEvent;
 
 		internal MailSender(ExceptionReportInfo reportInfo)
 		{
-			_reportInfo = reportInfo;
+			_config = reportInfo;
 		}
 
 		/// <summary>
 		/// Send SMTP email, requires following ExceptionReportInfo properties to be set
-		/// SmtpPort, SmtpUseSsl, SmtpFromAddress, EmailReportAddress
-		/// Set SmtpUsername/Password if SMTP server supports authentication
+		/// SmtpPort, SmtpFromAddress, EmailReportAddress
+		/// Set SmtpUsername/SmtPassword if SMTP server supports/requires authentication
 		/// </summary>
-		public void SendSmtp(string exceptionReport, IEmailSendEvent emailEvent)
+		public async Task<bool> SendSmtpAsync(string exceptionReport, IEmailSendEvent emailEvent)
 		{
 			_emailEvent = emailEvent;
 
@@ -38,29 +39,36 @@ namespace ExceptionReporting.Mail
 					Text = exceptionReport 
 				}
 			};
-			message.From.Add(new MailboxAddress(_reportInfo.SmtpFromAddress, _reportInfo.SmtpFromAddress));
-			message.To.Add(new MailboxAddress(_reportInfo.EmailReportAddress, _reportInfo.EmailReportAddress));
+			message.From.Add(new MailboxAddress(_config.SmtpFromAddress, _config.SmtpFromAddress));
+			message.To.Add(new MailboxAddress(_config.EmailReportAddress, _config.EmailReportAddress));
 
 			using (var client = new SmtpClient())
 			{
-				client.Connect(_reportInfo.SmtpServer, _reportInfo.SmtpPort, _reportInfo.SmtpUseSsl ? SecureSocketOptions.SslOnConnect : SecureSocketOptions.None);
+				client.Connect(_config.SmtpServer, _config.SmtpPort, 
+				               _config.SmtpUseSsl ? SecureSocketOptions.SslOnConnect : SecureSocketOptions.None);
 
-				if (!_reportInfo.SmtpUsername.IsEmpty())
+				if (!string.IsNullOrWhiteSpace(_config.SmtpUsername))
 				{
-					client.Authenticate(_reportInfo.SmtpUsername, _reportInfo.SmtpPassword);
+					client.Authenticate(_config.SmtpUsername, _config.SmtpPassword);
 				}
 
+				bool mailSent = false;
 				try
 				{
-					client.Send(message);
-				} 
-				catch (Exception ex) 
+					await client.SendAsync(message);
+					_emailEvent.Completed(true);
+				}
+				catch (Exception ex)
 				{
 					_emailEvent.Completed(false);
 					_emailEvent.ShowError(ex.Message, ex);
 				}
-				client.Disconnect(true);
-				_emailEvent.Completed(true);
+				finally
+				{
+					client.Disconnect(true);
+				}
+
+				return mailSent;
 			}
 		}
 
@@ -71,7 +79,7 @@ namespace ExceptionReporting.Mail
 		{
 			var mapi = new SimpleMapi();
 
-			mapi.AddRecipient(_reportInfo.EmailReportAddress, null, false);
+			mapi.AddRecipient(_config.EmailReportAddress, null, false);
 
 			AttachFiles(new AttachAdapter(mapi));
 			mapi.Send(EmailSubject, exceptionReport);
@@ -80,13 +88,13 @@ namespace ExceptionReporting.Mail
 		private void AttachFiles(IAttach attacher)
 		{
 			var filesToAttach = new List<string>();
-			if (_reportInfo.FilesToAttach.Length > 0)
+			if (_config.FilesToAttach.Length > 0)
 			{
-				filesToAttach.AddRange(_reportInfo.FilesToAttach);
+				filesToAttach.AddRange(_config.FilesToAttach);
 			}
-			if (_reportInfo.ScreenshotAvailable)
+			if (_config.ScreenshotAvailable)
 			{
-				filesToAttach.Add(ScreenshotTaker.GetImageAsFile(_reportInfo.ScreenshotImage));
+				filesToAttach.Add(ScreenshotTaker.GetImageAsFile(_config.ScreenshotImage));
 			}
 
 			var existingFilesToAttach = filesToAttach.Where(File.Exists).ToList();
@@ -99,7 +107,7 @@ namespace ExceptionReporting.Mail
 			var nonzipFilesToAttach = existingFilesToAttach.Where(f => !f.EndsWith(".zip")).ToList();
 			if (nonzipFilesToAttach.Any())
 			{ // attach all other files (non zip) into our one zip file
-				var zipFile = Path.Combine(Path.GetTempPath(), _reportInfo.AttachmentFilename);
+				var zipFile = Path.Combine(Path.GetTempPath(), _config.AttachmentFilename);
 				if (File.Exists(zipFile)) File.Delete(zipFile);
 
 				using (var zip = new ZipFile(zipFile))
@@ -118,7 +126,7 @@ namespace ExceptionReporting.Mail
 			{
 				try
 				{
-					return _reportInfo.MainException.Message.Truncate(100);
+					return _config.MainException.Message.Truncate(100);
 				}
 				catch (Exception)
 				{

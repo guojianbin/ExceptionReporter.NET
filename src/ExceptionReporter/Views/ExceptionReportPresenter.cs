@@ -87,7 +87,7 @@ namespace ExceptionReporting.Views
 
 			if (ReportInfo.MailMethod == ExceptionReportInfo.EmailMethod.SMTP)
 			{
-				SendSmtpMail();
+				SendSmtpMailAsync();
 			}
 		}
 
@@ -122,7 +122,7 @@ namespace ExceptionReporting.Views
 			return entireEmailText.ToString();
 		}
 
-		private void SendSmtpMail()
+		private async void SendSmtpMailAsync()
 		{
 			var emailText = BuildEmailText();
 
@@ -133,7 +133,7 @@ namespace ExceptionReporting.Views
 			try
 			{
 				var mailSender = new MailSender(ReportInfo);
-				mailSender.SendSmtp(emailText, _view);
+				await mailSender.SendSmtpAsync(emailText, _view);
 			}
 			catch (Exception exception)
 			{

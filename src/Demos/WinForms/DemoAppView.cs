@@ -3,6 +3,7 @@ using System.IO;
 using System.Windows.Forms;
 using ExceptionReporting;
 using ExceptionReporting.Core;
+using ExceptionReporting.Mail;
 
 namespace Demo.WinForms
 {
@@ -15,7 +16,7 @@ namespace Demo.WinForms
 			urlDefault.Click += Show_Default_Report;
 			urlHideDetail.Click += Show_HideDetailView_Click;
 			urlEmailTest.Click += Show_Email_Attachment_Test;
-			urlDialogless.Click += Do_Dialogless_Report;
+			urlDialogless.Click += Do_Dialogless_ReportAsync;
 		}
 
 		static void Show_Default_Report(object sender, EventArgs e)
@@ -28,7 +29,7 @@ namespace Demo.WinForms
 			ThrowAndShowExceptionReporter(detailView:true);
 		}
 
-		void Do_Dialogless_Report(object sender, EventArgs e)
+		async void Do_Dialogless_ReportAsync(object sender, EventArgs e)
 		{
 			try
 			{
@@ -42,8 +43,8 @@ namespace Demo.WinForms
 				};
 
 				ConfigureSmtpEmail(config);
-				var exceptionReportGenerator = new ExceptionReportGenerator(config);
-				exceptionReportGenerator.SendReportByEmail();
+				var reportGenerator = new ExceptionReportGenerator(config);
+				await reportGenerator.SendReportByEmailAsync(new EmailSendEvent());
 			}
 		}
 

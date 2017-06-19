@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using ExceptionReporting.Mail;
 using ExceptionReporting.SystemInfo;
@@ -9,7 +10,6 @@ using ExceptionReporting.SystemInfo;
 namespace ExceptionReporting.Core
 {
 	/// <summary>
-	/// ExceptionReportGenerator does everything that needs to happen to generate an ExceptionReport
 	/// This class is the entry point to use 'ExceptionReporter' as a general-purpose exception reporter
 	/// (ie use this class to create an exception report without showing a GUI/dialog)
 	/// </summary>
@@ -19,7 +19,7 @@ namespace ExceptionReporting.Core
 		private readonly List<SysInfoResult> _sysInfoResults = new List<SysInfoResult>();
 
 		/// <summary>
-		/// Initialises some ExceptionReportInfo properties related to the application/system
+		/// Initialises some ExceptionReportInfo (config) properties related to the application/system
 		/// </summary>
 		/// <param name="reportInfo">an ExceptionReportInfo, can be pre-populated with config
 		/// however 'base' properties such as MachineName</param>
@@ -54,24 +54,17 @@ namespace ExceptionReporting.Core
 		}
 
 		/// <summary>
-		/// Sends the report by email 
-		/// This no-arg method ignores receive completed/error events from the async email send
-		/// Use this method if you have no need to handle completion and errors
-		/// </summary>
-		public void SendReportByEmail()
-		{
-			var mailSender = new MailSender(_reportInfo);
-			mailSender.SendSmtp(CreateExceptionReport().ToString(), new EmailSendEvent());
-		}
-
-		/// <summary>
-		/// Sends the report by email (assumes SMTP - a silent/async send)
+		/// Sends the report by email (assumes SMTP - a silent/async send) 
+		/// Will automatically build the report if not already called with CreateExceptionReport
 		/// <param name="emailSendEvent">Implementation of cref="IEmailSendEvent"/ to receive completed event and error object, if any</param>
 		/// </summary>
-		public void SendReportByEmail(IEmailSendEvent emailSendEvent) 
+		public async Task<string> SendReportByEmailAsync(IEmailSendEvent emailSendEvent)
 		{
-				var mailSender = new MailSender(_reportInfo);
-			mailSender.SendSmtp(CreateExceptionReport().ToString(), emailSendEvent);
+			var report = CreateExceptionReport().ToString();
+			var mailSender = new MailSender(_reportInfo);
+
+			await mailSender.SendSmtpAsync(report, emailSendEvent ?? new EmailSendEvent());
+			return report;
 		}
 
 		internal IList<SysInfoResult> GetOrFetchSysInfoResults()

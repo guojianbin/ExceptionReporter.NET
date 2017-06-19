@@ -18,7 +18,6 @@ namespace ExceptionReporting
 
 		/// <summary>
 		/// Initialise the ExceptionReporter
-		/// <remarks>readConfig() should be called (explicitly) if you need to override default config settings</remarks>
 		/// </summary>
 		public ExceptionReporter()
 		{
@@ -41,23 +40,21 @@ namespace ExceptionReporting
 		/// <remarks>The <see cref="ExceptionReporter"/> will analyze the <see cref="Exception"/>s and 
 		/// create and show the report dialog.</remarks>
 		/// <param name="exceptions">The <see cref="Exception"/>s to show.</param>
-		// ReSharper disable MemberCanBePrivate.Global
 		public void Show(params Exception[] exceptions)
 		{
-			if (exceptions == null) return;		//TODO perhaps show a dialog that says "No exception to show" ?
+			if (exceptions == null) return;   //TODO perhaps show a dialog that says "No exception to show" ?
 
 			try
 			{
 				_reportInfo.SetExceptions(exceptions);
-				_view = new ExceptionReportView( _reportInfo);
+				_view = new ExceptionReportView(_reportInfo);
 				_view.ShowExceptionReport();
 			}
 			catch (Exception internalException)
 			{
-                System.Windows.Forms.MessageBox.Show(internalException.Message);
+				System.Windows.Forms.MessageBox.Show(internalException.Message);
 			}
 		}
-		// ReSharper restore MemberCanBePrivate.Global
 
 		/// <summary>
 		/// Show the ExceptionReport dialog with a custom message instead of the Exception's Message property
